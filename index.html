@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>GPS 오버레이</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    html, body { margin: 0; background: transparent; color: white; font-family: sans-serif; }
+    #map { height: 300px; width: 100%; }
+    .info-box {
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      font-size: 16px;
+    }
+    .leaflet-marker-icon.circle-icon {
+      border-radius: 50%;
+      border: 2px solid white;
+      box-shadow: 0 0 5px #000;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div class="info-box" id="info">GPS 대기 중...</div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let map = L.map('map').setView([35.1291, 126.8540], 17);
+    let totalDistance = 0, prevLat = null, prevLng = null;
+    const payPerKm = 800;
+
+    const myIcon = L.icon({
+      iconUrl: 'profile.png',
+      iconSize: [48, 48],
+      iconAnchor: [24, 24],
+      className: 'circle-icon'
+    });
+
+    let marker = L.marker([35.1291, 126.8540], { icon: myIcon }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
+
+    function deg2rad(d) { return d * (Math.PI / 180); }
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = deg2rad(lat2 - lat1);
+      const dLon = deg2rad(lon2 - lon1);
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+                Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function updateInfo() {
+      const km = totalDistance.toFixed(2);
+      const earn = Math.floor(totalDistance * payPerKm);
+      document.getElementById('info').innerHTML = `이동 거리: ${km} km<br>수익: ${earn.toLocaleString()} 원`;
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(pos => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        marker.setLatLng([lat, lng]);
+        map.setView([lat, lng]);
+
+        if (prevLat !== null && prevLng !== null) {
+          const d = getDistance(prevLat, prevLng, lat, lng);
+          if (d < 1) totalDistance += d;
+        }
+        prevLat = lat;
+        prevLng = lng;
+
+        updateInfo();
+      }, err => {
+        document.getElementById('info').textContent = 'GPS 오류: ' + err.message;
+      }, {
+        enableHighAccuracy: true,
+        maximumAge: 2000,
+        timeout: 10000
+      });
+    }
+  </script>
+</body>
+</html>
