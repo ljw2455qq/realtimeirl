@@ -8,39 +8,35 @@
     html, body {
       margin: 0;
       background: transparent;
-      color: white;
       font-family: sans-serif;
     }
     #map {
-      height: 300px;
+      height: 100vh;
       width: 100%;
-      z-index: 0;
     }
     .info-box {
-      background: rgba(0,0,0,0.6);
-      padding: 10px;
-      font-size: 16px;
       position: absolute;
       top: 10px;
       left: 10px;
-      z-index: 1000;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 10px 14px;
+      font-size: 16px;
       border-radius: 8px;
+      z-index: 1000;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
-  <div class="info-box" id="info">📍 위치 수신 대기 중...</div>
   <div id="map"></div>
+  <div class="info-box" id="info">📍 위치 수신 대기 중...</div>
 
-  <!-- Leaflet 지도 라이브러리 -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-  <!-- Firebase 모듈 불러오기 -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-    // Firebase 설정
     const firebaseConfig = {
       apiKey: "AIzaSyA5hMmN9QFgdFtaA5gicS_pj-blu_jJdvE",
       authDomain: "rider-bf48b.firebaseapp.com",
@@ -56,25 +52,25 @@
     const db = getDatabase(app);
 
     const infoBox = document.getElementById("info");
+    const map = L.map("map").setView([37.5665, 126.9780], 14); // 서울 초기값
 
-    // Leaflet 지도 초기화
-    const map = L.map('map').setView([37.5665, 126.9780], 14); // 서울 초기 위치
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors"
     }).addTo(map);
 
     let marker;
 
-    // Firebase에서 실시간 위치 수신
-    const locationRef = ref(db, "location");
+    // Pull Key 기반 위치 참조 (예: location/zeoeyze9htbyx455)
+    const pullKey = "zeoeyze9htbyx455";
+    const locationRef = ref(db, `location/${pullKey}`);
+
     onValue(locationRef, (snapshot) => {
       const data = snapshot.val();
-      if (!data) return;
+      if (!data || !data.latitude || !data.longitude) return;
 
       const { latitude, longitude, timestamp } = data;
-      const time = new Date(timestamp).toLocaleTimeString();
+      const timeStr = timestamp ? new Date(timestamp).toLocaleTimeString() : "";
 
-      // 마커 갱신
       if (marker) {
         marker.setLatLng([latitude, longitude]);
       } else {
@@ -82,7 +78,7 @@
       }
 
       map.setView([latitude, longitude], 15);
-      infoBox.innerText = `📍 위도: ${latitude.toFixed(5)}, 경도: ${longitude.toFixed(5)}\n🕒 ${time}`;
+      infoBox.textContent = `📍 위도: ${latitude.toFixed(5)}, 경도: ${longitude.toFixed(5)}\n🕒 ${timeStr}`;
     });
   </script>
 </body>
