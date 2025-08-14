@@ -8,15 +8,17 @@
   const drawLine = params.get("path") !== "0";
 
   // Map init
-  mapboxgl.accessToken = window.MAPBOX_TOKEN;
-  const map = new mapboxgl.Map({
-    container: "map",
-    style: `mapbox://styles/${mapStyle}`,
-    center: [127.0, 37.5],
-    zoom: initZoom,
-    attributionControl: false,
-    interactive: false
-  });
+  mapboxgl.accessToken = window.pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw;
+const map = new mapboxgl.Map({
+    container: 'map', // HTML div id
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [126.9780, 37.5665], // 초기 좌표 (서울 시청)
+    zoom: 14,
+    dragPan: true,       // 마우스 드래그로 지도 이동 허용
+    scrollZoom: true,    // 마우스 휠로 확대/축소 허용
+    doubleClickZoom: true, // 더블클릭 확대 허용
+    keyboard: true       // 키보드 화살표로 지도 이동
+});
 
   let last = null;     // {lng, lat, ts}
   let totalKm = 0;
