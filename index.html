@@ -48,12 +48,12 @@
         zoom: zoom ? Number(zoom) : 13,
       });
       map.addControl(
-        new MapboxLanguage({ defaultLanguage: params.get("lang") || "en" })
+        new MapboxLanguage({ defaultLanguage: params.get("lang") || "ko" })
       );
 
       var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
 
-      const pullKey = new URLSearchParams(window.location.search).get("key");
+      const pullKey = new URLSearchParams(window.location.search).get("zeoeyze9htbyx455");
       RealtimeIRL.forPullKey(pullKey).addLocationListener(
         function (location) {
           map.panTo([location.longitude, location.latitude], {
