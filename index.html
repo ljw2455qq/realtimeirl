@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live GPS Overlay</title>
+  <link rel="stylesheet" href="./style.css" />
+  <!-- Mapbox GL -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
+  <!-- Turf.js for distance calculation -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-database-compat.js"></script>
+  <script defer src="./firebase.js"></script>
+  <script defer src="./script.js"></script>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="hud">
+    <div class="row"><span>현재 시간</span><strong id="clock">--:--:--</strong></div>
+    <div class="row"><span>누적 거리</span><strong id="distance">0.00 km</strong></div>
+    <div class="row"><span>속도(추정)</span><strong id="speed">0.0 km/h</strong></div>
+    <div class="row"><span>날씨</span><strong id="weather">-</strong></div>
+  </div>
+
+  <div id="center-marker" title="현재 위치"></div>
+
+  <script>
+    // Mapbox token (user-provided)
+    window.MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
+  </script>
+</body>
+</html>
