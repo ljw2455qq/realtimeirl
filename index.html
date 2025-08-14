@@ -2,23 +2,37 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Live GPS Overlay</title>
-  <link rel="stylesheet" href="./style.css" />
-  <!-- Mapbox GL -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
-  <!-- Turf.js for distance calculation -->
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-database-compat.js"></script>
-  <script defer src="./firebase.js"></script>
-  <script defer src="./script.js"></script>
+
+  <!-- Mapbox GL CSS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css"
+        rel="stylesheet"/>
+
+  <!-- 최소 스타일 (지도가 화면 전체를 차지하도록) -->
+  <style>
+    html, body { height: 100%; margin: 0; font-family: sans-serif; }
+    #map   { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+    /* HUD (시계·거리·속도·날씨) */
+    .hud {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: rgba(255,255,255,.9);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .hud .row { display:flex; justify-content:space-between; margin-bottom:2px;}
+    .hud .row span{font-weight:bold;}
+  </style>
 </head>
+
 <body>
+  <!-- Map 컨테이너 -->
   <div id="map"></div>
 
+  <!-- HUD -->
   <div class="hud">
     <div class="row"><span>현재 시간</span><strong id="clock">--:--:--</strong></div>
     <div class="row"><span>누적 거리</span><strong id="distance">0.00 km</strong></div>
@@ -26,11 +40,41 @@
     <div class="row"><span>날씨</span><strong id="weather">-</strong></div>
   </div>
 
+  <!-- 중앙 마커 -->
   <div id="center-marker" title="현재 위치"></div>
 
+  <!-- ====================== 스크립트 로딩 순서 ====================== -->
+
+  <!-- Mapbox GL JS (v2.13.0) -->
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+
+  <!-- Mapbox 토큰 지정 (window.MAPBOX_TOKEN 으로 전달) -->
   <script>
-    // Mapbox token (user-provided)
-    window.MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
+    window.MAPBOX_TOKEN = "YOUR_MAPBOX_ACCESS_TOKEN";
+    mapboxgl.accessToken = window.MAPBOX_TOKEN;
   </script>
+
+  <!-- Firebase App & Database (compat 버전) -->
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-database-compat.js"></script>
+
+  <!-- Firebase 초기화 -->
+  <script>
+    const firebaseConfig = {
+    apiKey: "AIzaSyA5hMmN9QFgdFtaA5gicS_pj-blu_jJdvE",
+    authDomain: "rider-bf48b.firebaseapp.com",
+    databaseURL: "https://rider-bf48b-default-rtdb.firebaseio.com",
+    projectId: "rider-bf48b",
+    storageBucket: "rider-bf48b.firebasestorage.app",
+    messagingSenderId: "1026929653322",
+    appId: "1:1026929653322:web:b90541cccba5b4186198b3"
+};
+    firebase.initializeApp(firebaseConfig);
+    window.db = firebase.database();   // script.js 가 바로 사용 가능
+  </script>
+
+  <!-- 메인 로직 (defer 로 실행) -->
+  <script defer src="./firebase.js"></script>
+  <script defer src="./script.js"></script>
 </body>
 </html>
