@@ -2,7 +2,7 @@
   const params = new URLSearchParams(location.search);
   const lang = params.get("lang") || "ko";
   const initZoom = Number(params.get("zoom") || 15);
-  const weatherKey = params.get("owmKey") || ""; // OpenWeather API Key (옵션)
+  const weatherKey = params.get("3a4a39b054762e36581605681026ed35") || ""; // OpenWeather API Key (옵션)
   const mapStyle = params.get("style") || "mapbox/streets-v11";
   const follow = params.get("follow") !== "0";
   const drawLine = params.get("path") !== "0";
