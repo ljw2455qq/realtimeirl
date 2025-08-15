@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>GitHub 이미지 마커 예시</title>
+<title>GitHub 이미지 마커(둥글고 작은 아이콘)</title>
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
 <style>
@@ -16,6 +16,19 @@
     padding:5px 10px;
     border-radius:4px;
     font-size:14px;
+  }
+
+  /* 마커용 컨테이너 */
+  .marker-wrapper {
+    width:25px;          /* 원하는 크기 */
+    height:25px;
+    border-radius:50%;   /* 둥글게 */
+    overflow:hidden;     /* 이미지가 넘치면 잘라내기 */
+    box-shadow:0 2px 6px rgba(0,0,0,.3); /* 그림자 (옵션) */
+  }
+  .marker-wrapper img {
+    width:100%; height:100%;
+    object-fit:cover;   /* 비율을 유지하며 꽉 채우기 */
   }
 </style>
 </head>
@@ -57,11 +70,13 @@
 
   // ───── 커스텀 이미지 마커 생성 함수 ────────────────────────
   function createCustomMarker(lat, lng) {
-    const el = document.createElement('img');
-    el.src = GITHUB_IMG_URL;
-    el.style.width = '40px';   // 원하는 크기 지정 (픽셀 단위)
-    el.style.height = '40px';
-    el.style.transform = 'translate(-50%, -100%)'; // 좌표 기준으로 정렬
+    // wrapper(컨테이너) + img 태그를 별도로 만들어줍니다.
+    const el = document.createElement('div');
+    el.className = 'marker-wrapper';
+
+    const img = document.createElement('img');
+    img.src = GITHUB_IMG_URL;
+    el.appendChild(img);
 
     return new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(map);
   }
