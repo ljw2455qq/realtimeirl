@@ -1,29 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<title>Mapbox v3 예제</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.js"></script>
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.0.0/mapbox-gl.css" rel="stylesheet" />
-<style>
-  body { margin: 0; padding: 0; }
-  #map { width: 400px; height: 300px; }
-</style>
+  <meta charset="utf-8">
+  <title>Mapbox 자유 이동 지도</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+    }
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
+  <div id="map"></div>
 
-<div id="map"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw';
 
-<script>
-mapboxgl.accessToken = 'pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw';
-const map = new mapboxgl.Map({
-    container: 'map', // 컨테이너 ID
-    style: 'mapbox://styles/mapbox/streets-v12', // v3에서는 필수
-    center: [-74.5, 40], // [경도, 위도]
-    zoom: 9
-});
-</script>
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [126.9780, 37.5665], // 서울 좌표
+      zoom: 12,
+      dragPan: true,   // 마우스 드래그로 지도 이동 가능
+      scrollZoom: true // 마우스 휠로 확대/축소 가능
+    });
 
+    // 줌 컨트롤 버튼 추가
+    map.addControl(new mapboxgl.NavigationControl());
+  </script>
 </body>
 </html>
