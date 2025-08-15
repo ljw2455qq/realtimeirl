@@ -2,100 +2,74 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>실시간 GPS 지도</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet">
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
+<title>GPS + RTIRL 오버레이 지도</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body { margin:0; padding:0; }
-  #map{ position:absolute; top:0; bottom:0; width:100%; }
+  body{margin:0;font-family:sans-serif;background:#f5f5f5;}
+  #container{max-width:400px;margin:2rem auto;text-align:center;}
+  button{
+    padding:.8rem 1.6rem;
+    font-size:1rem;
+    background:#0077ff;color:white;border:none;cursor:pointer;
+    border-radius:4px;
+  }
+  button:hover{background:#005bbb;}
 </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div id="container">
+  <h2>GPS 위치를 지도에 표시하기</h2>
+  <p>아래 버튼을 눌러 현재 위치를 가져와 Mapbox 오버레이를 띄워 보세요.</p>
+  <button id="startBtn">시작</button>
+</div>
 
 <script>
-/* ---------- 1. Map 초기화 ---------- */
-mapboxgl.accessToken = 'pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw';
-const map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/standard',
-    projection: 'globe',
-    zoom: 1,
-    center: [30, 15]
-});
-
-map.addControl(new mapboxgl.NavigationControl());
-map.scrollZoom.disable();
-map.on('style.load', () => map.setFog({}));
-
-/* ---------- 2. 현재 위치 가져오기 & 마커 만들기 ---------- */
-let marker;   // 전역에 선언해 나중에 업데이트 가능하도록
-
-// 최초 한번만 호출되는 함수
-function initLocation() {
+/* ---------- 1. 버튼 클릭 시 실행 ---------- */
+document.getElementById('startBtn').addEventListener('click', () => {
+    // ① 현재 위치 요청
     if (!navigator.geolocation) {
         alert('Geolocation API를 지원하지 않는 브라우저입니다.');
         return;
     }
 
-    // 처음 위치 가져오기 (옵션으로 highAccuracy 요청)
-    navigator.geolocation.getCurrentPosition(position => {
-        const { latitude, longitude } = position.coords;
+    navigator.geolocation.getCurrentPosition(
+        (pos) => handleSuccess(pos),
+        (err) => handleError(err),
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+});
 
-        // 마커 생성
-        marker = new mapboxgl.Marker({ color: '#ff0000' })
-            .setLngLat([longitude, latitude])
-            .addTo(map);
+/* ---------- 2. 성공 콜백 ---------- */
+function handleSuccess(position){
+    const { latitude, longitude } = position.coords;
 
-        // 지도 중심을 현재 위치로 이동 (smooth)
-        map.flyTo({
-            center: [longitude, latitude],
-            zoom: 15,
-            speed: 1.2
-        });
+    // ② 오버레이 URL 생성
+    const baseUrl = 'https://overlays.rtirl.com/mapbox.html';
+    const params = new URLSearchParams({
+        key:          'zeoeyze9htbyx455',                       // RTIRL Key
+        access_token: 'pk.eyJ1Ijoia2V2bW8zMTQiLCJhIjoiY2w0MW1qaTh3MG80dzNjcXRndmJ0a2JieiJ9.Y_xABmAqvD-qZeed8MabxQ',
+        style:        'mapbox/streets-v11',
+        zoom:         15,                      // 원하는 줌 레벨
+        lang:         'ko',
+        attribution:  0,
+        indicatorStyle:'eyJoZWlnaHQiOjEyLCJ3aWR0aCI6MTIsImJvcmRlclJhZGl1cyI6NTAsImJhY2tncm91bmRDb2xvciI6ImN5YW4ifQ%3D%3D',
+        // 현재 위치를 중심으로 지정
+        center: `${longitude},${latitude}`
+    });
 
-        // 이후 지속적으로 업데이트하기
-        watchPosition();
-    }, err => {
-        console.error(err);
-        alert('현재 위치를 가져오는데 실패했습니다.');
-    }, { enableHighAccuracy:true });
+    const url = `${baseUrl}?${params.toString()}`;
+
+    // ③ 새 창(또는 탭) 열기
+    window.open(url, '_blank', 'noopener,noreferrer,width=800,height=600');
 }
 
-/* ---------- 3. 지속적인 위치 추적 ---------- */
-function watchPosition() {
-    const options = {
-        enableHighAccuracy: true,
-        maximumAge: 0,          // 캐시 사용 금지
-        timeout: 5000           // 5초 안에 응답 없으면 실패
-    };
-
-    navigator.geolocation.watchPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-
-        if (marker) {
-            // 마커 위치 업데이트
-            marker.setLngLat([longitude, latitude]);
-        }
-
-        // 지도도 따라가게 만들면 사용자가 이동을 바로 볼 수 있음
-        map.easeTo({
-            center: [longitude, latitude],
-            duration: 1000   // 1초 동안 부드럽게 움직임
-        });
-
-    }, err => {
-        console.warn('위치 업데이트 실패:', err);
-    }, options);
+/* ---------- 3. 실패 콜백 ---------- */
+function handleError(error){
+    console.error('GPS 오류:', error);
+    alert(`위치를 가져오지 못했습니다: ${error.message}`);
 }
-
-/* ---------- 실행 ---------- */
-initLocation();
 </script>
-
 </body>
 </html>
