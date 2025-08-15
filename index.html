@@ -1,36 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Live GPS Overlay</title>
-  <link rel="stylesheet" href="./style.css" />
-  <!-- Mapbox GL -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
-  <!-- Turf.js for distance calculation -->
-  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-database-compat.js"></script>
-  <script defer src="./firebase.js"></script>
-  <script defer src="./script.js"></script>
+<meta charset="utf-8">
+<title>실시간 GPS 지도</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.14.0/mapbox-gl.js"></script>
+
+<style>
+  body { margin:0; padding:0; }
+  #map{ position:absolute; top:0; bottom:0; width:100%; }
+</style>
 </head>
 <body>
-  <div id="map"></div>
 
-  <div class="hud">
-    <div class="row"><span>현재 시간</span><strong id="clock">--:--:--</strong></div>
-    <div class="row"><span>누적 거리</span><strong id="distance">0.00 km</strong></div>
-    <div class="row"><span>속도(추정)</span><strong id="speed">0.0 km/h</strong></div>
-    <div class="row"><span>날씨</span><strong id="weather">-</strong></div>
-  </div>
+<div id="map"></div>
 
-  <div id="center-marker" title="현재 위치"></div>
+<script>
+/* ---------- 1. Map 초기화 ---------- */
+mapboxgl.accessToken = 'pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw';
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/standard',
+    projection: 'globe',
+    zoom: 1,
+    center: [30, 15]
+});
 
-  <script>
-    // Mapbox token (user-provided)
-    window.MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
-  </script>
+map.addControl(new mapboxgl.NavigationControl());
+map.scrollZoom.disable();
+map.on('style.load', () => map.setFog({}));
+
+/* ---------- 2. 현재 위치 가져오기 & 마커 만들기 ---------- */
+let marker;   // 전역에 선언해 나중에 업데이트 가능하도록
+
+// 최초 한번만 호출되는 함수
+function initLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocation API를 지원하지 않는 브라우저입니다.');
+        return;
+    }
+
+    // 처음 위치 가져오기 (옵션으로 highAccuracy 요청)
+    navigator.geolocation.getCurrentPosition(position => {
+        const { latitude, longitude } = position.coords;
+
+        // 마커 생성
+        marker = new mapboxgl.Marker({ color: '#ff0000' })
+            .setLngLat([longitude, latitude])
+            .addTo(map);
+
+        // 지도 중심을 현재 위치로 이동 (smooth)
+        map.flyTo({
+            center: [longitude, latitude],
+            zoom: 15,
+            speed: 1.2
+        });
+
+        // 이후 지속적으로 업데이트하기
+        watchPosition();
+    }, err => {
+        console.error(err);
+        alert('현재 위치를 가져오는데 실패했습니다.');
+    }, { enableHighAccuracy:true });
+}
+
+/* ---------- 3. 지속적인 위치 추적 ---------- */
+function watchPosition() {
+    const options = {
+        enableHighAccuracy: true,
+        maximumAge: 0,          // 캐시 사용 금지
+        timeout: 5000           // 5초 안에 응답 없으면 실패
+    };
+
+    navigator.geolocation.watchPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+
+        if (marker) {
+            // 마커 위치 업데이트
+            marker.setLngLat([longitude, latitude]);
+        }
+
+        // 지도도 따라가게 만들면 사용자가 이동을 바로 볼 수 있음
+        map.easeTo({
+            center: [longitude, latitude],
+            duration: 1000   // 1초 동안 부드럽게 움직임
+        });
+
+    }, err => {
+        console.warn('위치 업데이트 실패:', err);
+    }, options);
+}
+
+/* ---------- 실행 ---------- */
+initLocation();
+</script>
+
 </body>
 </html>
