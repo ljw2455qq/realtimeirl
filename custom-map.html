@@ -5,7 +5,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@rtirl/api@latest/lib/index.min.js"></script>
-    <script defer src="./indicator.js"></script> <!-- 커스터마이징 필요 -->
+    <script defer src="./indicator.js"></script> <!-- 필요 시 커스터마이징 -->
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
   </head>
   <body>
@@ -53,13 +53,13 @@
           marker.setLngLat([location.longitude, location.latitude]);
         }
 
-        // 이미지 적용 (예: 외부 URL 사용)
+        // profile.png 이미지 적용
         const markerElement = marker.getElement();
-        markerElement.style.backgroundImage = 'ur[](https://via.placeholder.com/24)'; // 이미지 URL
+        markerElement.style.backgroundImage = 'ur[](https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png)';
         markerElement.style.backgroundSize = 'cover';
-        markerElement.style.width = '24px';
-        markerElement.style.height = '24px';
-        markerElement.style.borderRadius = '50%'; // 원형 유지
+        markerElement.style.width = '24px'; // 이미지 크기 조정 (필요 시 변경)
+        markerElement.style.height = '24px'; // 이미지 크기 조정 (필요 시 변경)
+        markerElement.style.borderRadius = '0'; // 이미지 원형 여부 조정 (필요 시 변경)
       });
     </script>
   </body>
