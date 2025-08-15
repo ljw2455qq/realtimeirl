@@ -1,58 +1,36 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>방송 오버레이</title>
-<style>
-    body {
-        margin: 0;
-        background: transparent;
-        font-family: Arial, sans-serif;
-        color: white;
-    }
-    .overlay {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: rgba(0,0,0,0.6);
-        padding: 5px 10px;
-        display: flex;
-        align-items: center;
-        font-size: 16px;
-    }
-    .stat {
-        margin-right: 15px;
-    }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Live GPS Overlay</title>
+  <link rel="stylesheet" href="./style.css" />
+  <!-- Mapbox GL -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.js"></script>
+  <!-- Turf.js for distance calculation -->
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.24.0/firebase-database-compat.js"></script>
+  <script defer src="./firebase.js"></script>
+  <script defer src="./script.js"></script>
 </head>
 <body>
+  <div id="map"></div>
 
-<div class="overlay" id="stats">
-    <div class="stat">이동거리: <span id="distance">0</span> km</div>
-    <div class="stat">일수익: <span id="daily">0</span>원</div>
-    <div class="stat">월수익: <span id="monthly">0</span>원</div>
-    <div class="stat">연수익: <span id="yearly">0</span>원</div>
-</div>
+  <div class="hud">
+    <div class="row"><span>현재 시간</span><strong id="clock">--:--:--</strong></div>
+    <div class="row"><span>누적 거리</span><strong id="distance">0.00 km</strong></div>
+    <div class="row"><span>속도(추정)</span><strong id="speed">0.0 km/h</strong></div>
+    <div class="row"><span>날씨</span><strong id="weather">-</strong></div>
+  </div>
 
-<script>
-    // ====== 수정 가능한 데이터 ======
-    let data = {
-        distance: 16.3,
-        daily: 0,
-        monthly: 507000,
-        yearly: 17193800
-    };
+  <div id="center-marker" title="현재 위치"></div>
 
-    // ====== 데이터 표시 ======
-    function updateStats() {
-        document.getElementById("distance").textContent = data.distance;
-        document.getElementById("daily").textContent = data.daily.toLocaleString();
-        document.getElementById("monthly").textContent = data.monthly.toLocaleString();
-        document.getElementById("yearly").textContent = data.yearly.toLocaleString();
-    }
-    updateStats();
-</script>
+  <script>
+    // Mapbox token (user-provided)
+    window.MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
+  </script>
 </body>
 </html>
