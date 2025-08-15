@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>GPS 추적 + Mapbox + Firebase</title>
+
+<!-- 1️⃣ Mapbox CSS -->
+<link href="https://api.tiles.mapbox.com/mapbox-gl-js/v2.17.0/mapbox-gl.css" rel="stylesheet"/>
+
+<style>
+body{font-family:system-ui,Arial,sans-serif;background:#111;color:#eee;margin:0;padding:20px;}
+h1{margin-bottom:10px;}
+#map{width:100%;height:400px;margin-bottom:15px;}
+button{padding:8px 14px;font-size:16px;border:none;border-radius:4px;cursor:pointer;margin-right:5px;}
+button:hover{background:#ddd;color:#000;}
+#info{margin-top:10px;}
+</style>
+</head>
+
+<body>
+<h1>GPS 위치 추적 & 지도 표시 (Mapbox + Firebase)</h1>
+
+<div id="map"></div>
+
+<button onclick="startTracking()">추적 시작</button>
+<button onclick="stopTracking()">정지</button>
+<button onclick="resetTracking()">리셋</button>
+
+<div id="info">
+  <p>총 이동거리: <span id="distance">0.00 km</span></p>
+  <p>상태: <span id="status">대기 중…</span></p>
+</div>
+
+<!-- 2️⃣ Mapbox GL JS -->
+<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.17.0/mapbox-gl.js"></script>
+
+<!-- 3️⃣ Firebase 8.x CDN (Realtime Database) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+/* ---------- 1️⃣ Mapbox 초기화 ----------
+   Replace YOUR_MAPBOX_ACCESS_TOKEN with your token */
+mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v12',
+    center: [127.0, 37.5], // 초기 위치(서울 기준)
+    zoom: 14
+});
+
+/* ---------- 2️⃣ Firebase 초기화 ----------
+   Replace the config object with your own */
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_DATABASE_NAME.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_BUCKET.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ---------- 3️⃣ 전역 변수 ----------
+   - watchID : navigator.geolocation.watchPosition() 반환값
+   - totalDistance : 누적 거리(km)
+   - prevPos : 이전 위치 객체 (lat, lng) */
+let watchID = null;
+let totalDistance = 0.0;
+let prevPos = null;
+
+/* ---------- 4️⃣ Polyline(경로) 소스 + 마커 ----------
+   지도 로드 시 한 번만 추가합니다. */
+map.on('load', () => {
+    map.addSource('route', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] }
+    });
+
+    map.addLayer({
+        id: 'route-line',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#ff5722', 'line-width': 4 }
+    });
+
+    // 현재 위치 마커(초기 숨김)
+    window.currentMarker = new mapboxgl.Marker({ color: '#00e676' })
+        .setLngLat([0, 0])
+        .addTo(map);
+});
+
+/* ---------- 5️⃣ Haversine 거리 계산 ----------
+   두 좌표 사이의 직선 거리를 km 단위로 반환 */
+function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371; // 지구 반지름(km)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat/2)**2 +
+        Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+        Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ---------- 6️⃣ 위치 갱신 콜백 ----------
+   navigator.geolocation.watchPosition() 에 전달되는 함수 */
+function onLocationUpdate(position) {
+    const { latitude, longitude } = position.coords;
+
+    // 이전 위치가 있으면 거리 누적
+    if (prevPos) {
+        const d = haversine(prevPos.lat, prevPos.lng, latitude, longitude);
+        totalDistance += d;
+    }
+
+    // 지도에 경로 추가
+    const coords = [longitude, latitude];
+    const features = map.getSource('route')._data.features || [];
+    features.push({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: [coords] }
+    });
+    map.getSource('route').setData({ type: 'FeatureCollection', features });
+
+    // 현재 위치 마커 이동
+    currentMarker.setLngLat(coords);
+
+    // UI 업데이트
+    document.getElementById('distance').textContent = totalDistance.toFixed(2);
+    document.getElementById('status').textContent =
+        `업데이트 : ${new Date().toLocaleTimeString()}`;
+
+    // Firebase 저장 (실시간)
+    db.ref('gpsData/latest').set({
+        latitude,
+        longitude,
+        distance: totalDistance.toFixed(2),
+        timestamp: Date.now()
+    }).catch(err => console.error('Firebase write error:', err));
+
+    // 다음 위치 준비
+    prevPos = { lat: latitude, lng: longitude };
+}
+
+/* ---------- 7️⃣ 에러 콜백 ----------
+   navigator.geolocation.watchPosition() 의 오류 처리 */
+function onLocationError(error) {
+    document.getElementById('status').textContent =
+        `오류(${error.code}): ${error.message}`;
+}
+
+/* ---------- 8️⃣ 추적 시작 함수 ----------
+   watchPosition() 를 호출하고 상태 표시를 바꿉니다. */
+function startTracking() {
+    if (!navigator.geolocation) {
+        alert('이 브라우저는 GPS 기능을 지원하지 않습니다.');
+        return;
+    }
+    watchID = navigator.geolocation.watchPosition(onLocationUpdate, onLocationError, {
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    });
+    document.getElementById('status').textContent = '추적 중…';
+}
+
+/* ---------- 9️⃣ 추적 정지 함수 ----------
+   watchPosition() 를 해제합니다. */
+function stopTracking() {
+    if (watchID !== null) {
+        navigator.geolocation.clearWatch(watchID);
+        watchID = null;
+        document.getElementById('status').textContent = '정지됨';
+    }
+}
+
+/* ---------- 10️⃣ 리셋 함수 ----------
+   거리, 이전 위치, 지도 라인 모두 초기화합니다. */
+function resetTracking() {
+    stopTracking();
+    totalDistance = 0;
+    prevPos = null;
+
+    // 지도 라인 초기화
+    map.getSource('route').setData({ type: 'FeatureCollection', features: [] });
+
+    document.getElementById('distance').textContent = '0.00';
+    document.getElementById('status').textContent = '리셋 완료';
+
+    // Firebase에 리셋 표시(선택 사항)
+    db.ref('gpsData/latest').set({
+        latitude: 0,
+        longitude: 0,
+        distance: '0.00',
+        timestamp: Date.now()
+    }).catch(err => console.error('Firebase reset error:', err));
+}
+</script>
+</body>
+</html>
