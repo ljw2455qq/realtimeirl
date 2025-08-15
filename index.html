@@ -1,103 +1,101 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <title>GPS 이동 거리 측정</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-  <style>
-    body, html { margin:0; padding:0; height:100%; width:100%; }
-    #map { width:100%; height:100%; }
-    #distance {
-      position:absolute;
-      top:10px; left:10px;
-      background:rgba(0,0,0,.6);
-      color:white; padding:5px 10px;
-      border-radius:5px; font-size:14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>GitHub 이미지 마커 예시</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<style>
+  body, html { margin:0; padding:0; height:100%; }
+  #map { width:100%; height:100%; }
+  #distance {
+    position:absolute;
+    top:10px; left:10px;
+    background:rgba(0,0,0,.6);
+    color:#fff;
+    padding:5px 10px;
+    border-radius:4px;
+    font-size:14px;
+  }
+</style>
 </head>
 <body>
 
 <div id="map"></div>
-<div id="distance">이동 거리: 0.0 km</div>
+<div id="distance">이동 거리: 0.00 km</div>
 
 <script>
+  // ───── Mapbox 설정 ────────────────────────────────
   mapboxgl.accessToken = 'pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw';
-
   const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/streets-v11',
-    center: [126.9780, 37.5665], // 초기 서울 좌표
+    center: [126.9780, 37.5665],
     zoom: 16
   });
-
   map.addControl(new mapboxgl.NavigationControl());
 
-  /* ---------- 거리 계산용 헬퍼 함수 ---------- */
-  function degreesToRadians(deg) { return deg * Math.PI / 180; }
-
-  function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
-    const R = 6371; // km
-    const dLat = degreesToRadians(lat2 - lat1);
-    const dLon = degreesToRadians(lon2 - lon1);
+  // ───── 거리 계산 헬퍼 함수 ────────────────────────────
+  const toRad = d => d * Math.PI / 180;
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371;                     // km
     const a =
-      Math.sin(dLat/2)*Math.sin(dLat/2) +
-      Math.cos(degreesToRadians(lat1))*Math.cos(degreesToRadians(lat2)) *
-      Math.sin(dLon/2)*Math.sin(dLon/2);
-    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      Math.sin(toRad(lat2-lat1)/2)**2 +
+      Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
+      Math.sin(toRad(lon2-lon1)/2)**2;
+    return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
-  /* ---------- 전역 변수 ---------- */
-  let marker = null;          // 한 번만 생성되는 마커
-  let prevLat = null;
-  let prevLng = null;
-  let totalDistance = 0.0;
+  // ───── 전역 변수 ───────────────────────────────
+  let marker = null;            // 한 번만 생성되는 마커
+  let prevLat, prevLng;
+  let totalDist = 0;
 
-  /* ---------- 위치 업데이트 함수 (새로 추가) ---------- */
+  // ───── GitHub 이미지 URL (Raw 형태) ────────────────────────
+  const GITHUB_IMG_URL =
+    'https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png';
+
+  // ───── 커스텀 이미지 마커 생성 함수 ────────────────────────
+  function createCustomMarker(lat, lng) {
+    const el = document.createElement('img');
+    el.src = GITHUB_IMG_URL;
+    el.style.width = '40px';   // 원하는 크기 지정 (픽셀 단위)
+    el.style.height = '40px';
+    el.style.transform = 'translate(-50%, -100%)'; // 좌표 기준으로 정렬
+
+    return new mapboxgl.Marker(el).setLngLat([lng, lat]).addTo(map);
+  }
+
+  // ───── 위치 업데이트 함수 (한 번만 마커 생성) ────────────────
   function updateLocation(lat, lng) {
-    if (!marker) {                     // 최초 한 번만 마커 생성
-      marker = new mapboxgl.Marker({ color: 'red' })
-        .setLngLat([lng, lat])
-        .addTo(map);
-    } else {                           // 이후에는 위치만 바꿈
-      marker.setLngLat([lng, lat]);
+    if (!marker) {            // 최초 한 번만 마커 생성
+      marker = createCustomMarker(lat, lng);
+    } else {
+      marker.setLngLat([lng, lat]);   // 이후에는 위치만 바꿈
     }
 
-    // 지도 중심 이동
     map.setCenter([lng, lat]);
 
-    /* ---------- 거리 계산 ---------- */
-    if (prevLat !== null && prevLng !== null) {
-      const d = getDistanceFromLatLonInKm(prevLat, prevLng, lat, lng);
-      totalDistance += d;
+    if (prevLat != null && prevLng != null) {
+      const d = haversine(prevLat, prevLng, lat, lng);
+      totalDist += d;
       document.getElementById('distance').innerText =
-        `이동 거리: ${totalDistance.toFixed(2)} km`;
+        `이동 거리: ${totalDist.toFixed(2)} km`;
     }
-
-    // 다음 호출을 위한 이전 좌표 저장
-    prevLat = lat;
-    prevLng = lng;
+    prevLat = lat;  prevLng = lng;
   }
 
-  /* ---------- GPS 감시 시작 ---------- */
+  // ───── GPS 감시 시작 ─────────────────────────
   if (navigator.geolocation) {
     navigator.geolocation.watchPosition(
-      pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        updateLocation(lat, lng);   // 새 함수 호출
-      },
-      err => {
-        console.error(err);
-        alert('GPS 위치를 가져올 수 없습니다.');
-      },
+      pos => updateLocation(pos.coords.latitude, pos.coords.longitude),
+      err => { console.error(err); alert('GPS를 불러올 수 없습니다.'); },
       { enableHighAccuracy:true, maximumAge:0 }
     );
   } else {
-    alert('이 브라우저에서는 GPS를 지원하지 않습니다.');
+    alert('이 브라우저는 GPS를 지원하지 않습니다.');
   }
-</script>
 
+</script>
 </body>
 </html>
