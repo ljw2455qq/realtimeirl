@@ -5,28 +5,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-sdk/umd/mapbox-sdk.min.js"></script>
     <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@rtirl/api@latest/lib/index.min.js"></script>
-    <script defer src="./indicator.js"></script>
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css"
-      rel="stylesheet"
-    />
+    <script defer src="./indicator.js"></script> <!-- 커스터마이징 필요 -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.2.0/mapbox-gl.css" rel="stylesheet" />
   </head>
   <body>
     <div style="position: relative; width: 100%; height: 100%;">
       <div id="map" style="width: 300px; height: 250px"></div>
-      <div
-        id="marker"
-        style="
-          background-color: cyan;
-          height: 12px;
-          width: 12px;
-          position: absolute;
-          border-radius: 50%;
-          top: 119px;
-          left: 144px;
-          box-shadow: 0 0 10px cyan;
-        "
-      ></div>
     </div>
     <script>
       var params = new URLSearchParams(window.location.search);
@@ -35,8 +19,6 @@
         document.documentElement.setAttribute('style', 'margin: 0; padding: 0; width: 100%; height: 100%;');
         document.body.setAttribute('style', 'margin: 0; padding: 0; width: 100%; height: 100%;');
         document.getElementById('map').setAttribute('style', 'height: 100%; width: 100%;');
-        document.getElementById('marker').style.top = 'calc(50% - 6px)';
-        document.getElementById('marker').style.left = 'calc(50% - 6px)';
       }
       mapboxgl.accessToken = params.get("access_token");
       var zoom = params.get("zoom");
@@ -47,21 +29,38 @@
         attributionControl: false,
         zoom: zoom ? Number(zoom) : 13,
       });
-      map.addControl(
-        new MapboxLanguage({ defaultLanguage: params.get("lang") || "en" })
-      );
+      map.addControl(new MapboxLanguage({ defaultLanguage: params.get("lang") || "en" }));
 
       var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
 
-      const pullKey = new URLSearchParams(window.location.search).get("key");
-      RealtimeIRL.forPullKey(pullKey).addLocationListener(
-        function (location) {
-          map.panTo([location.longitude, location.latitude], {
-            duration: 1500,
-            easing: (x) => x,
-          });
+      const pullKey = params.get("key");
+      let marker = null; // 마커 객체 저장
+
+      RealtimeIRL.forPullKey(pullKey).addLocationListener(function(location) {
+        map.panTo([location.longitude, location.latitude], {
+          duration: 1500,
+          easing: (x) => x,
+        });
+
+        // 마커 업데이트
+        if (!marker) {
+          marker = new mapboxgl.Marker({
+            element: document.createElement('div') // 커스텀 div 생성
+          })
+          .setLngLat([location.longitude, location.latitude])
+          .addTo(map);
+        } else {
+          marker.setLngLat([location.longitude, location.latitude]);
         }
-      );
+
+        // 이미지 적용 (예: 외부 URL 사용)
+        const markerElement = marker.getElement();
+        markerElement.style.backgroundImage = 'ur[](https://via.placeholder.com/24)'; // 이미지 URL
+        markerElement.style.backgroundSize = 'cover';
+        markerElement.style.width = '24px';
+        markerElement.style.height = '24px';
+        markerElement.style.borderRadius = '50%'; // 원형 유지
+      });
     </script>
   </body>
 </html>
