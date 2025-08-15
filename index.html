@@ -1,68 +1,58 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"/>
-<title>Mapbox Studio 오버레이 (폰트·언어 적용)</title>
-
-<!-- Mapbox GL CSS -->
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet"/>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>방송 오버레이</title>
 <style>
-  html, body { height:100%; margin:0; }
-  
-  /* 오버레이용 컨테이너 */
-  #map {
-    width: 400px;          /* 원하는 크기로 조정 */
-    height: 300px;
-    border-radius: 8px;
-    overflow:hidden;
-    position:fixed;        /* 화면에 고정 */
-    top:20px; left:20px;   /* 위치 지정 */
-    box-shadow:0 2px 10px rgba(0,0,0,.3);
-    background:none;       /* 투명 배경으로 설정 */
-  }
+    body {
+        margin: 0;
+        background: transparent;
+        font-family: Arial, sans-serif;
+        color: white;
+    }
+    .overlay {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: rgba(0,0,0,0.6);
+        padding: 5px 10px;
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+    }
+    .stat {
+        margin-right: 15px;
+    }
 </style>
 </head>
-
 <body>
-<div id="map"></div>
 
-<!-- Mapbox GL JS -->
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+<div class="overlay" id="stats">
+    <div class="stat">이동거리: <span id="distance">0</span> km</div>
+    <div class="stat">일수익: <span id="daily">0</span>원</div>
+    <div class="stat">월수익: <span id="monthly">0</span>원</div>
+    <div class="stat">연수익: <span id="yearly">0</span>원</div>
+</div>
 
 <script>
-  // 👉 MAPBOX ACCESS TOKEN 입력
-  const token = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
-  mapboxgl.accessToken = token;
+    // ====== 수정 가능한 데이터 ======
+    let data = {
+        distance: 16.3,
+        daily: 0,
+        monthly: 507000,
+        yearly: 17193800
+    };
 
-  // 📌 스타일 URL (Studio에서 만든 것)
-  const styleURL =
-    `https://api.mapbox.com/styles/v1/hooncom/cmec6cp69008t01sn56qmf5qx?access_token=${token}`;
-
-  // 지도 초기화
-  const map = new mapboxgl.Map({
-    container: 'map',
-    style: styleURL,
-    center: [127.297875, 36.479687],   // 좌표 (lon, lat)
-    zoom: 15.14,
-    pitch: 0,
-    bearing: 0,
-    antialias: true
-  });
-
-  // 투명 배경을 위해 레이어가 완전히 로드된 뒤에 opacity 조정
-  map.on('load', () => {
-    // 스타일이 로드되면, 필요한 경우 특정 레이어를 투명하게 만들 수 있음
-    // 예시: label 레이어의 불투명도 감소 (필요 없으면 주석 해제)
-    // map.setPaintProperty('road-label', 'text-opacity', 0.6);
-  });
-
-  // 예시: 실시간 GPS 마커(임시 좌표) 추가
-  const marker = new mapboxgl.Marker({color:'#ff5722'})
-                  .setLngLat([127.297875, 36.479687])
-                  .addTo(map);
-
-  // 필요 시, 마커를 주기적으로 업데이트하는 로직을 여기에 삽입
+    // ====== 데이터 표시 ======
+    function updateStats() {
+        document.getElementById("distance").textContent = data.distance;
+        document.getElementById("daily").textContent = data.daily.toLocaleString();
+        document.getElementById("monthly").textContent = data.monthly.toLocaleString();
+        document.getElementById("yearly").textContent = data.yearly.toLocaleString();
+    }
+    updateStats();
 </script>
 </body>
 </html>
