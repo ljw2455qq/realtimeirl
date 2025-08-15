@@ -38,14 +38,14 @@
         document.getElementById('marker').style.top = 'calc(50% - 6px)';
         document.getElementById('marker').style.left = 'calc(50% - 6px)';
       }
-      mapboxgl.accessToken = params.get("access_token");
+      mapboxgl.accessToken = params.get("pk.eyJ1Ijoia2V2bW8zMTQiLCJhIjoiY2w0MW1qaTh3MG80dzNjcXRndmJ0a2JieiJ9.Y_xABmAqvD-qZeed8MabxQ");
       var zoom = params.get("zoom");
       var map = new mapboxgl.Map({
         container: "map",
         style: "mapbox://styles/" + params.get("style"),
         interactive: false,
         attributionControl: false,
-        zoom: zoom ? Number(zoom) : 13,
+        zoom: zoom ? Number(zoom) : 15,
       });
       map.addControl(
         new MapboxLanguage({ defaultLanguage: params.get("lang") || "en" })
@@ -54,7 +54,7 @@
       var mapboxClient = mapboxSdk({ accessToken: mapboxgl.accessToken });
 
       const pullKey = new URLSearchParams(window.location.search).get("key");
-      RealtimeIRL.forPullKey(pullKey).addLocationListener(
+      RealtimeIRL.forPullKey(zeoeyze9htbyx455).addLocationListener(
         function (location) {
           map.panTo([location.longitude, location.latitude], {
             duration: 1500,
