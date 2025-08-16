@@ -1,37 +1,49 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>OBS GPS 오버레이</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="firebase.js"></script>
-    <style>
-        body { margin: 0; padding: 0; background: transparent; font-family: sans-serif; }
-        #overlay { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            background: rgba(0,0,0,0.5);
-            color: white; 
-            font-size: 24px; 
-            padding: 10px 20px; 
-            border-radius: 10px;
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>GPS Overlay</title>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body, html { margin:0; padding:0; height:100%; }
+    #map { width:100%; height:100%; }
+  </style>
 </head>
 <body>
-    <div id="overlay">
-        <span id="distanceText">총 이동량: 0.00 km</span>
-    </div>
+  <div id="map"></div>
+  <script type="module">
+    import { db, ref, onValue } from "./firebase.js";
 
-    <script>
-        db.ref('gpsData').on('value', (snapshot) => {
-            let data = snapshot.val();
-            if (data) {
-                document.getElementById('distanceText').textContent = `총 이동량: ${data.distance} km`;
-            }
-        });
-    </script>
+    mapboxgl.accessToken = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
+
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/dark-v11',
+      center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
+      zoom: 12
+    });
+
+    let marker = null;
+
+    // Firebase에서 GPS 좌표 실시간 수신
+    onValue(ref(db, 'gps/current'), (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const coords = [data.lng, data.lat];
+
+        if (!marker) {
+          marker = new mapboxgl.Marker({ color: "red" })
+            .setLngLat(coords)
+            .addTo(map);
+        } else {
+          marker.setLngLat(coords);
+        }
+
+        // 지도 중심도 같이 이동
+        map.flyTo({ center: coords, essential: true });
+      }
+    });
+  </script>
 </body>
 </html>
