@@ -45,8 +45,17 @@ const marker = new mapboxgl.Marker(el).setLngLat([127.0, 37.5]).addTo(map);
 function updatePosition(position) {
     const lon = position.coords.longitude;
     const lat = position.coords.latitude;
-    marker.setLngLat([lon, lat]);
-    map.setCenter([lon, lat]);
+
+    // 기존 마커 제거 (존재하면)
+    if (marker) marker.remove();
+
+    // 새로운 마커 생성
+    const marker = new mapboxgl.Marker({
+        color: '#FF0000', // 빨간색으로 변경
+        scale: 1.5, // 크기 조절
+    })
+    .setLngLat([lon, lat])
+    .addTo(map);
 }
 
 // 에러 처리
