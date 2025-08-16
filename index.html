@@ -50,13 +50,19 @@ function updatePosition(position) {
     if (marker) marker.remove();
 
     // 새로운 마커 생성
+    const el = document.createElement('div');
+    el.className = 'marker';
+    el.style.backgroundImage = "url('https://example.com/myphoto.jpg')";
+    el.style.width = '60px';
+    el.style.height = '60px';
+
     const marker = new mapboxgl.Marker({
-        color: '#FF0000', // 빨간색으로 변경
-        scale: 1.5, // 크기 조절
+        element: el,
     })
     .setLngLat([lon, lat])
     .addTo(map);
 }
+
 
 // 에러 처리
 function handleError(err) {
