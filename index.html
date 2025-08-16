@@ -1,10 +1,51 @@
-import { db, ref, set } from "./firebase.js";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RealtimeIRL + Mapbox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@rtirl/api"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0; }
+    #map { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
 
-// GPS 데이터를 Firebase에 업로드
-function updateLocation(lat, lng) {
-  set(ref(db, 'gps/current'), {
-    lat: lat,
-    lng: lng,
-    timestamp: Date.now()
-  });
-}
+  <script>
+    // 🔑 API Key 입력
+    const MAPBOX_TOKEN = "YOUR_MAPBOX_TOKEN";
+    const PULL_KEY = "YOUR_RTIRL_PULL_KEY";
+
+    // Mapbox 지도 초기화
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
+      zoom: 12
+    });
+
+    // 마커 생성
+    const marker = new mapboxgl.Marker({ color: "red" })
+      .setLngLat([126.9780, 37.5665])
+      .addTo(map);
+
+    // RealtimeIRL 연결
+    RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
+      console.log("새 GPS 좌표:", location);
+
+      if (location.lat && location.lng) {
+        // 마커 위치 업데이트
+        marker.setLngLat([location.lng, location.lat]);
+
+        // 지도 중심 이동 (원하는 경우)
+        map.setCenter([location.lng, location.lat]);
+      }
+    });
+  </script>
+</body>
+</html>
