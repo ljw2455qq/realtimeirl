@@ -5,9 +5,9 @@
   <title>RealtimeIRL + Mapbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@rtirl/api"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.js"></script> <!-- v3.6.1 유지 -->
-  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
+  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 추가 -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
   <style>
     body { 
       margin:0; 
@@ -17,7 +17,6 @@
     #map { 
       width: 100vw; 
       height: 100vh; 
-      border: 1px solid red; /* 디버깅용 테두리 */
     }
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
       display: none !important; /* OBS 화면에 로고/저작권 숨김 */
@@ -32,62 +31,57 @@
     const MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
     const PULL_KEY = "zeoeyze9htbyx455"; // 본인 RealtimeIRL pull key
 
-    // Mapbox 초기화 시도
+    // Mapbox 지도 초기화
     mapboxgl.accessToken = MAPBOX_TOKEN;
-    console.log("Mapbox Access Token:", mapboxgl.accessToken);
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v12', // 디테일 좋은 스타일
+      center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
+      zoom: 14
+    });
 
-    try {
-      const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v12', // 호환성 테스트용
-        center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
-        zoom: 14
-      });
-      console.log("Map 초기화 성공");
+    // ✅ 언어 설정 (한국어)
+    map.addControl(new MapboxLanguage({ defaultLanguage: 'ko' }));
 
-      // ✅ 언어 설정 (한국어)
-      map.addControl(new MapboxLanguage({ defaultLanguage: 'ko' }));
-      console.log("언어 설정 적용");
+    // ✅ 확대/축소 컨트롤 버튼 추가
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      // ✅ 확대/축소 컨트롤 버튼 추가
-      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // ✅ 커스텀 마커 (내 사진)
+    const el = document.createElement('div');
+    el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
+    el.style.width = '25px';  // 마커 크기 키움
+    el.style.height = '25px';
+    el.style.backgroundSize = 'cover';
+    el.style.borderRadius = '50%';
+    el.style.border = '2px solid white';
+    el.style.boxShadow = '0 0 8px rgba(0,0,0,0.6)';
 
-      // ✅ 커스텀 마커 (내 사진)
-      const el = document.createElement('div');
-      el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
-      el.style.width = '25px';
-      el.style.height = '25px';
-      el.style.backgroundSize = 'cover';
-      el.style.borderRadius = '50%';
-      el.style.border = '2px solid white';
-      el.style.boxShadow = '0 0 8px rgba(0,0,0,0.6)';
+    // 마커 생성 (초기 서울 좌표)
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([126.9780, 37.5665])
+      .addTo(map);
 
-      // 마커 생성 (초기 서울 좌표)
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([126.9780, 37.5665])
-        .addTo(map);
+    // RealtimeIRL 연결
+    RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
+      console.log("새 GPS 좌표:", location);
 
-      // RealtimeIRL 연결
-      RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
-        console.log("새 GPS 좌표:", location);
+      if (location.latitude && location.longitude) {
+        // 마커 위치 업데이트
+        marker.setLngLat([location.longitude, location.latitude]);
 
-        if (location.latitude && location.longitude) {
-          // 마커 위치 업데이트
-          marker.setLngLat([location.longitude, location.latitude]);
-
-          // 지도 중심 이동 (부드럽게)
-          map.flyTo({
-            center: [location.longitude, location.latitude],
-            essential: true,
-            speed: 0.8,
-            zoom: map.getZoom() // 현재 줌 유지
-          });
-        }
-      });
-
-    } catch (error) {
-      console.error("Map 초기화 실패:", error);
-    }
+        // 지도 중심 이동 (부드럽게)
+        map.flyTo({
+          center: [location.longitude, location.latitude],
+          essential: true,
+          speed: 0.8,
+          zoom: map.getZoom() // 현재 줌 유지
+        });
+      }
+    });
   </script>
 </body>
 </html>
+
+
+
+
