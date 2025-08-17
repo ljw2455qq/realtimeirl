@@ -18,18 +18,6 @@
 body{margin:0;padding:0;background:transparent;}
 #map{width:100vw;height:100vh;}
 .mapboxgl-ctrl-logo,.mapboxgl-ctrl-attrib{display:none!important;}
-
-.marker {
-  width:50px;
-  height:50px;
-  border-radius:50%;
-  border:2px solid white;
-  box-shadow:0 0 8px rgba(0,0,0,.6);
-  background-repeat:no-repeat;
-  background-size:contain;          /* 비율 유지 */
-  image-rendering:-webkit-crisp-edges; /* Safari용 fallback */
-  image-rendering:crisp-edges;       /* 대부분 브라우저 */
-}
 </style>
 </head>
 
@@ -39,51 +27,51 @@ body{margin:0;padding:0;background:transparent;}
 <script>
 // ① API 키
 const MAPBOX_TOKEN = "pk.eyJ1IjoiaG9uY29tIiwiYSI6ImNtaWMzdHI4Z3Vwc2gzbXNvcmRzMjc5aW0ifQ.Xxx";
-const PULL_KEY     = "zeoeyze9htbyx455";
+const PULL_KEY = "zeoeyze9htbyx455";
 
-// ② Mapbox GL JS 초기화
+// ② Mapbox GL JS 초기화 (v3.x)
 mapboxgl.accessToken = MAPBOX_TOKEN;
 const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v12',
+    style: 'mapbox://styles/mapbox/streets-v12', // v3에서도 동일
     center: [126.9780, 37.5665],
     zoom: 14,
 });
 
-// ③ 언어 플러그인
+// ③ 언어 플러그인 (v2.x 호환)
 new MapboxLanguage({ defaultLanguage: 'ko' }).addTo(map);
 
 // ④ 확대/축소 컨트롤
 map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-// ⑤ 마커를 표시할 <div> 를 미리 준비하고 이미지 로드 확인
-const markerEl = document.createElement('div');
-markerEl.className = 'marker';      // CSS 클래스 적용
+// ⑤ 커스텀 마커
+const el = document.createElement('div');
+el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
+el.style.width = '50px';
+el.style.height = '50px';
+el.style.backgroundSize = 'contain';
+el.style.backgroundRepeat = 'no-repeat';
+el.style.borderRadius = '50%';
+el.style.border = '2px solid white';
+el.style.boxShadow = '0 0 8px rgba(0,0,0,.6)';
+el.style.imageRendering = 'pixelated';
 
-// 고해상도 이미지를 먼저 로드
-const img = new Image();
-img.src = 'https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png';
-img.onload = () => {
-    markerEl.style.backgroundImage = `url('${img.src}')`;
+const marker = new mapboxgl.Marker(el)
+    .setLngLat([126.9780, 37.5665])
+    .addTo(map);
 
-    // Mapbox Marker 생성 (offset을 0,0 으로 두면 중앙이 좌표와 일치)
-    const marker = new mapboxgl.Marker(markerEl, { offset: [0,0] })
-        .setLngLat([126.9780, 37.5665])
-        .addTo(map);
-
-    // ⑥ RealtimeIRL 연결
-    RealtimeIRL.forPullKey(PULL_KEY).addLocationListener(location => {
-        if (location.latitude && location.longitude) {
-            marker.setLngLat([location.longitude, location.latitude]);
-            map.flyTo({
-                center: [location.longitude, location.latitude],
-                essential: true,
-                speed: 0.8,
-                zoom: map.getZoom()
-            });
-        }
-    });
-};
+// ⑥ RealtimeIRL 연결
+RealtimeIRL.forPullKey(PULL_KEY).addLocationListener(location => {
+    if (location.latitude && location.longitude) {
+        marker.setLngLat([location.longitude, location.latitude]);
+        map.flyTo({
+            center: [location.longitude, location.latitude],
+            essential: true,
+            speed: 0.8,
+            zoom: map.getZoom()
+        });
+    }
+});
 </script>
 </body>
 </html>
