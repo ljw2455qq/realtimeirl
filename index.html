@@ -70,12 +70,6 @@
       .setLngLat([126.9780, 37.5665])
       .addTo(map);
 
-    // 투명도 슬라이더 이벤트
-    const opacitySlider = document.getElementById('opacity-slider');
-    opacitySlider.addEventListener('input', (e) => {
-      const opacity = e.target.value / 100; // 0~100%를 0.0~1.0으로 변환
-      document.getElementById('map').style.opacity = opacity;
-    });
 
     // RealtimeIRL 연결
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
