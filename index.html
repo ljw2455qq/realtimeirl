@@ -23,6 +23,19 @@
       left: 0;
       opacity: 0.85; /* 약 15% 투명도 (85% 불투명) */
     }
+    #distance-overlay {
+      position: absolute;
+      top: 310px; /* 지도 아래 배치 */
+      left: 0;
+      width: 400px;
+      background: rgba(0, 0, 0, 0.5); /* 투명한 검은 배경 */
+      color: white;
+      font-size: 18px;
+      padding: 5px 10px;
+      border-radius: 5px;
+      text-align: center;
+      white-space: nowrap; /* 텍스트 줄바꿈 방지 */
+    }
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
       display: none !important; /* OBS 화면에 로고/저작권 숨김 */
     }
@@ -30,6 +43,7 @@
 </head>
 <body>
   <div id="map"></div>
+  <div id="distance-overlay">총 이동 거리: 0.00 km</div>
 
   <script>
     // 🔑 API Key 입력
@@ -74,6 +88,25 @@
       .setLngLat([126.9780, 37.5665])
       .addTo(map);
 
+    // Haversine 공식으로 두 좌표 간 거리 계산 (미터 단위)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // 지구 반경 (미터)
+      const φ1 = lat1 * Math.PI / 180; // 위도 to 라디안
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c; // 미터 단위 거리
+    }
+
+    // 이동 거리 변수
+    let totalDistance = 0;
+    let previousLocation = null;
+
     // RealtimeIRL 연결
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
       console.log("새 GPS 좌표:", location);
@@ -89,6 +122,19 @@
           speed: 0.8,
           zoom: map.getZoom() // 현재 줌 유지
         });
+
+        // 이동 거리 계산
+        if (previousLocation) {
+          const distance = calculateDistance(
+            previousLocation.latitude, previousLocation.longitude,
+            location.latitude, location.longitude
+          );
+          totalDistance += distance / 1000; // 미터를 km로 변환
+        }
+        previousLocation = location;
+
+        // 오버레이 업데이트
+        document.getElementById('distance-overlay').textContent = `총 이동 거리: ${totalDistance.toFixed(2)} km`;
       }
     });
   </script>
