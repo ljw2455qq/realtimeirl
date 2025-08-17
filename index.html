@@ -18,7 +18,7 @@
   <script>
     // 🔑 API Key 입력
     const MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
-    const PULL_KEY = "zeoeyze9htbyx455";
+    const PULL_KEY = "zeoeyze9htbyx455"; // 본인 RealtimeIRL pull key
 
     // Mapbox 지도 초기화
     mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -29,7 +29,7 @@
       zoom: 12
     });
 
-    // 마커 생성
+    // 마커 생성 (초기 서울 좌표)
     const marker = new mapboxgl.Marker({ color: "red" })
       .setLngLat([126.9780, 37.5665])
       .addTo(map);
@@ -38,12 +38,13 @@
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
       console.log("새 GPS 좌표:", location);
 
-      if (location.lat && location.lng) {
+      // 📌 올바른 속성 이름은 location.latitude / location.longitude
+      if (location.latitude && location.longitude) {
         // 마커 위치 업데이트
-        marker.setLngLat([location.lng, location.lat]);
+        marker.setLngLat([location.longitude, location.latitude]);
 
-        // 지도 중심 이동 (원하는 경우)
-        map.setCenter([location.lng, location.lat]);
+        // 지도 중심 이동
+        map.setCenter([location.longitude, location.latitude]);
       }
     });
   </script>
