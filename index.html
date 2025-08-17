@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<title>RealtimeIRL + Mapbox (v3.6.1)</title>
+<title>Mapbox + RealtimeIRL (v3.6.1)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <!-- 1️⃣ RealtimeIRL SDK -->
@@ -12,26 +12,23 @@
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.js"></script>
 
-<!-- 3️⃣ Mapbox Language 플러그인 (최신 CDN) -->
+<!-- 3️⃣ Mapbox Language 플러그인 -->
 <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-language@2/dist/mapboxgl-language.min.js"></script>
 
 <style>
-  body{margin:0;padding:0;background:#000;}
-  #map{width:100vw;height:100vh;}
-  /* 로고·저작권 숨기기(옵션) */
-  .mapboxgl-ctrl-logo,.mapboxgl-ctrl-attrib{display:none !important;}
+  html, body{margin:0;height:100%;overflow:hidden;}
+  #map{width:100%;height:100%;}
 </style>
 </head>
-
 <body>
 <div id="map"></div>
 
 <script>
-// ────── API 키 (Mapbox + RealtimeIRL) ──────
+// ────── API 키 설정
 const MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
-const PULL_KEY     = "zeoeyze9htbyx455"; // RealtimeIRL pull key
+const PULL_KEY     = "zeoeyze9htbyx455";   // RealtimeIRL pull key
 
-// ────── 지도를 초기화 (DOMContentLoaded 이후) ──────
+// ────── 지도를 초기화 (DOMContentLoaded 이후)
 document.addEventListener("DOMContentLoaded", () => {
   mapboxgl.accessToken = MAPBOX_TOKEN;
 
@@ -42,13 +39,10 @@ document.addEventListener("DOMContentLoaded", () => {
     zoom: 14,
   });
 
-  // 언어 설정 (한국어)
+  // 한국어 언어 플러그인
   map.addControl(new MapboxLanguage({ defaultLanguage: "ko" }));
 
-  // 확대/축소 컨트롤
-  map.addControl(new mapboxgl.NavigationControl(), "top-right");
-
-  // 커스텀 마커(프로필 사진)
+  // 커스텀 마커 (프로필 사진)
   const markerEl = document.createElement("div");
   markerEl.style.backgroundImage =
     'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
@@ -63,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .setLngLat([126.9780, 37.5665])
     .addTo(map);
 
-  // RealtimeIRL 연결
+  // RealtimeIRL 위치 이벤트
   RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((loc) => {
     if (!loc.latitude || !loc.longitude) return;
 
