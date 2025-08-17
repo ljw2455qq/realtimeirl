@@ -22,13 +22,6 @@
       top: 0;
       left: 0;
     }
-    #opacity-slider {
-      position: absolute;
-      top: 310px; /* 지도 아래 배치 */
-      left: 0;
-      width: 400px;
-      opacity: 0.8; /* 슬라이더 투명도 */
-    }
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
       display: none !important; /* OBS 화면에 로고/저작권 숨김 */
     }
@@ -36,7 +29,6 @@
 </head>
 <body>
   <div id="map"></div>
-  <input type="range" id="opacity-slider" min="0" max="100" value="50" step="1">
 
   <script>
     // 🔑 API Key 입력
@@ -69,7 +61,6 @@
     const marker = new mapboxgl.Marker(el)
       .setLngLat([126.9780, 37.5665])
       .addTo(map);
-
 
     // RealtimeIRL 연결
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
