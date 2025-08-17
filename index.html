@@ -5,9 +5,9 @@
   <title>RealtimeIRL + Mapbox</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@rtirl/api"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
-  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 추가 -->
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.js"></script> <!-- v3.6.1로 업그레이드 -->
+  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.6.1/mapbox-gl.css" rel="stylesheet"> <!-- v3.6.1로 업그레이드 -->
   <style>
     body { 
       margin:0; 
@@ -35,7 +35,7 @@
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v12', // 디테일 좋은 스타일
+      style: 'mapbox://styles/mapbox/standard', // v3 기본 스타일로 변경
       center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
       zoom: 14
     });
@@ -49,7 +49,7 @@
     // ✅ 커스텀 마커 (내 사진)
     const el = document.createElement('div');
     el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
-    el.style.width = '25px';  // 마커 크기 키움
+    el.style.width = '25px';  // 마커 크기
     el.style.height = '25px';
     el.style.backgroundSize = 'cover';
     el.style.borderRadius = '50%';
@@ -60,6 +60,11 @@
     const marker = new mapboxgl.Marker(el)
       .setLngLat([126.9780, 37.5665])
       .addTo(map);
+
+    // ✅ 조명 효과 추가 (v3.6.1 기능)
+    map.on('style.load', () => {
+      map.setConfigProperty('basemap', 'lightPreset', 'dusk'); // 황혼 조명 효과
+    });
 
     // RealtimeIRL 연결
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
@@ -81,7 +86,3 @@
   </script>
 </body>
 </html>
-
-
-
-
