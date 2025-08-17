@@ -35,11 +35,14 @@
     const map = new mapboxgl.Map({
       container: 'map',
       // 📍 지도 스타일 URL을 한국어 언어팩이 포함된 스타일로 변경
-      style: 'mapbox://styles/mapbox/streets-v12?language=ko',
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
       zoom: 14
     });
 
+    // ✅ 언어 설정 (한국어)
+    map.addControl(new MapboxLanguage({ defaultLanguage: 'ko' }));
+    
     // ✅ 확대/축소 컨트롤 버튼 추가
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
