@@ -21,7 +21,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      
+      opacity: 0.7; /* 약 30% 투명도 (70% 불투명) */
     }
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
       display: none !important; /* OBS 화면에 로고/저작권 숨김 */
@@ -47,6 +47,16 @@
 
     // ✅ 언어 설정 (한국어)
     map.addControl(new MapboxLanguage({ defaultLanguage: 'ko' }));
+
+    // 지도 스타일 로드 후 텍스트 굵기 및 불투명도 조정
+    map.on('style.load', () => {
+      // 주요 레이어에서 텍스트 스타일 수정
+      map.setPaintProperty('road-label', 'text-opacity', 1.0); // 텍스트 불투명도 100%
+      map.setPaintProperty('place-label', 'text-opacity', 1.0); // 텍스트 불투명도 100%
+      // 텍스트 크기 및 굵기 증가 (가능한 경우)
+      map.setLayoutProperty('road-label', 'text-size', 14); // 기본 크기 증가
+      map.setLayoutProperty('place-label', 'text-size', 14); // 기본 크기 증가
+    });
 
     // ✅ 커스텀 마커 (내 사진)
     const el = document.createElement('div');
