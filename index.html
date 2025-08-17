@@ -2,21 +2,25 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>RealtimeIRL + Mapbox</title>
+  <title>OBS RealtimeIRL Overlay</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@rtirl/api"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
-  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 추가 -->
+  <script src="https://mapbox.github.io/mapbox-gl-language/index.js"></script> <!-- 언어 플러그인 -->
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
   <style>
-    body { 
-      margin:0; 
-      padding:0; 
+    body {
+      margin: 0;
+      padding: 0;
       background: transparent; /* OBS 오버레이용 투명 배경 */
+      overflow: hidden; /* 스크롤 제거 */
     }
-    #map { 
-      width: 100vw; 
-      height: 100vh; 
+    #map {
+      width: 1280px; /* OBS 720p 해상도에 맞춘 고정 크기 */
+      height: 720px;
+      position: absolute;
+      top: 0;
+      left: 0;
     }
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
       display: none !important; /* OBS 화면에 로고/저작권 숨김 */
@@ -37,19 +41,16 @@
       container: 'map',
       style: 'mapbox://styles/mapbox/streets-v12', // 디테일 좋은 스타일
       center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
-      zoom: 17
+      zoom: 17 // 요청된 줌 레벨 유지
     });
 
     // ✅ 언어 설정 (한국어)
     map.addControl(new MapboxLanguage({ defaultLanguage: 'ko' }));
 
-    // ✅ 확대/축소 컨트롤 버튼 추가
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
     // ✅ 커스텀 마커 (내 사진)
     const el = document.createElement('div');
     el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
-    el.style.width = '25px';  // 마커 크기 키움
+    el.style.width = '25px';  // 마커 크기
     el.style.height = '25px';
     el.style.backgroundSize = 'cover';
     el.style.borderRadius = '50%';
@@ -81,7 +82,3 @@
   </script>
 </body>
 </html>
-
-
-
-
