@@ -8,8 +8,18 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
   <style>
-    body { margin:0; padding:0; }
-    #map { width: 100vw; height: 100vh; }
+    body { 
+      margin:0; 
+      padding:0; 
+      background: transparent; /* OBS 오버레이용 투명 배경 */
+    }
+    #map { 
+      width: 100vw; 
+      height: 100vh; 
+    }
+    .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
+      display: none !important; /* OBS 화면에 로고/저작권 숨김 */
+    }
   </style>
 </head>
 <body>
@@ -24,20 +34,23 @@
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: 'mapbox://styles/mapbox/outdoors-v12', // 👉 디테일 좋은 스타일 (streets-v12 대신)
       center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
-      zoom: 12
+      zoom: 14
     });
 
-    // ✅ 커스텀 마커 (HTML 엘리먼트)
+    // ✅ 확대/축소 컨트롤 버튼 추가
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+    // ✅ 커스텀 마커 (내 사진)
     const el = document.createElement('div');
     el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
-    el.style.width = '25px';
-    el.style.height = '25px';
+    el.style.width = '40px';  // 마커 크기 키움
+    el.style.height = '40px';
     el.style.backgroundSize = 'cover';
     el.style.borderRadius = '50%';
     el.style.border = '2px solid white';
-    el.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
+    el.style.boxShadow = '0 0 8px rgba(0,0,0,0.6)';
 
     // 마커 생성 (초기 서울 좌표)
     const marker = new mapboxgl.Marker(el)
@@ -48,13 +61,17 @@
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
       console.log("새 GPS 좌표:", location);
 
-      // 📌 올바른 속성 이름은 location.latitude / location.longitude
       if (location.latitude && location.longitude) {
         // 마커 위치 업데이트
         marker.setLngLat([location.longitude, location.latitude]);
 
-        // 지도 중심 이동
-        map.setCenter([location.longitude, location.latitude]);
+        // 지도 중심 이동 (부드럽게)
+        map.flyTo({
+          center: [location.longitude, location.latitude],
+          essential: true,
+          speed: 0.8,
+          zoom: map.getZoom() // 현재 줌 유지
+        });
       }
     });
   </script>
