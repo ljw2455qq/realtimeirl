@@ -2,11 +2,15 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>RealtimeIRL + Mapbox</title>
+  <title>RealtimeIRL + Mapbox (한국어)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/@rtirl/api"></script>
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.js"></script>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.13.0/mapbox-gl.css" rel="stylesheet">
+
+  <!-- ✅ 한국어 라벨 플러그인 -->
+  <script src="https://unpkg.com/mapbox-gl-language"></script>
+
   <style>
     body { 
       margin:0; 
@@ -34,10 +38,15 @@
     mapboxgl.accessToken = MAPBOX_TOKEN;
     const map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/outdoors-v12', // 👉 디테일 좋은 스타일 (streets-v12 대신)
+      style: 'mapbox://styles/mapbox/outdoors-v12', // 👉 디테일 좋은 스타일
       center: [126.9780, 37.5665], // 초기 좌표 (서울시청)
       zoom: 14
     });
+
+    // ✅ 한국어 라벨 강제 적용
+    map.addControl(new MapboxLanguage({
+      defaultLanguage: 'ko'
+    }));
 
     // ✅ 확대/축소 컨트롤 버튼 추가
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -45,7 +54,7 @@
     // ✅ 커스텀 마커 (내 사진)
     const el = document.createElement('div');
     el.style.backgroundImage = 'url("https://raw.githubusercontent.com/ljw2455qq/realtimeirl/main/profile.png")';
-    el.style.width = '25px';  // 마커 크기 키움
+    el.style.width = '25px';  
     el.style.height = '25px';
     el.style.backgroundSize = 'cover';
     el.style.borderRadius = '50%';
