@@ -12,35 +12,38 @@
     body {
       margin: 0;
       padding: 0;
-      background: transparent; /* OBS 오버레이용 투명 배경 */
+      background: transparent;
       overflow: hidden;
     }
 
-    /* 🗺 지도 */
+    /* 전체 컨테이너 */
+    #map-container {
+      position: absolute;
+      bottom: 40px; /* 화면 하단 기준 위치 조정 */
+      right: 40px;  /* 화면 오른쪽 기준 위치 조정 */
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* 중앙 정렬 */
+    }
+
     #map {
       width: 260px;
       height: 260px;
-      position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0.9; /* 지도 투명도 (1.0은 완전 불투명) */
-      border-radius: 10px; /* 모서리 둥글게 */
+      opacity: 0.85;
+      border-radius: 10px;
+      overflow: hidden;
     }
 
-    /* 🧭 이동 거리 오버레이 */
     #distance-overlay {
-      position: absolute;
-      top: 270px; /* 지도 바로 아래로 위치 조정 */
-      left: 0;
+      margin-top: 8px; /* 지도와의 간격 */
       width: 260px;
-      background: rgba(0, 0, 0, 0.6); /* 반투명 검정 배경 */
+      background: rgba(0, 0, 0, 0.5);
       color: white;
       font-size: 18px;
-      padding: 6px 0;
-      border-radius: 8px;
+      padding: 5px 0;
+      border-radius: 5px;
       text-align: center;
       white-space: nowrap;
-      opacity: 0.8; /* 텍스트 영역 투명도 */
     }
 
     .mapboxgl-ctrl-logo, .mapboxgl-ctrl-attrib {
@@ -49,8 +52,10 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
-  <div id="distance-overlay">총 이동 거리: 0.00 km</div>
+  <div id="map-container">
+    <div id="map"></div>
+    <div id="distance-overlay">총 이동 거리: 0.00 km</div>
+  </div>
 
   <script>
     const MAPBOX_TOKEN = "pk.eyJ1IjoiaG9vbmNvbSIsImEiOiJjbWNjM3R4enUwM3pnMmlxMWJvZTVrMWIzIn0.h_-BNK4FuriEfFWXvE1pmw";
@@ -85,7 +90,6 @@
       const φ2 = lat2 * Math.PI / 180;
       const Δφ = (lat2 - lat1) * Math.PI / 180;
       const Δλ = (lon2 - lon1) * Math.PI / 180;
-
       const a = Math.sin(Δφ / 2) ** 2 +
                 Math.cos(φ1) * Math.cos(φ2) *
                 Math.sin(Δλ / 2) ** 2;
@@ -99,15 +103,24 @@
     RealtimeIRL.forPullKey(PULL_KEY).addLocationListener((location) => {
       if (location.latitude && location.longitude) {
         marker.setLngLat([location.longitude, location.latitude]);
-        map.flyTo({ center: [location.longitude, location.latitude], essential: true, speed: 0.8, zoom: map.getZoom() });
+        map.flyTo({
+          center: [location.longitude, location.latitude],
+          essential: true,
+          speed: 0.8,
+          zoom: map.getZoom()
+        });
 
         if (previousLocation) {
-          const distance = calculateDistance(previousLocation.latitude, previousLocation.longitude, location.latitude, location.longitude);
+          const distance = calculateDistance(
+            previousLocation.latitude, previousLocation.longitude,
+            location.latitude, location.longitude
+          );
           totalDistance += distance / 1000;
         }
         previousLocation = location;
 
-        document.getElementById('distance-overlay').textContent = `총 이동 거리: ${totalDistance.toFixed(2)} km`;
+        document.getElementById('distance-overlay').textContent =
+          `총 이동 거리: ${totalDistance.toFixed(2)} km`;
       }
     });
   </script>
